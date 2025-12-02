@@ -1,0 +1,65 @@
+# ============================================================================
+# Duration Prediction Model - Python Dependencies
+# Python 3.9.6 compatible
+# ============================================================================
+
+# CORE REQUIREMENTS (Required for the project)
+# ============================================================================
+
+# Data manipulation and analysis
+pandas>=1.3.0,<2.0.0
+
+# Numerical computing
+numpy>=1.21.0,<2.0.0
+
+# Machine learning library
+scikit-learn>=0.24.0,<2.0.0
+
+
+# OPTIONAL REQUIREMENTS - Uncomment as needed
+# ============================================================================
+
+matplotlib>=3.3.0
+seaborn>=0.11.0
+plotly>=5.0.0
+pyarrow
+fastparquet
+
+
+
+
+# Jupyter Notebook and Interactive Development
+# jupyter>=1.0.0
+# jupyterlab>=3.0.0
+# ipython>=7.0.0
+# notebook>=6.0.0
+
+black>=21.0          # Code formatting
+pylint>=2.0.0       # Code linting
+flake8>=3.9.0       # Code style checking
+pytest>=6.0.0       # Testing framework
+
+xgboost>=1.4.0      # Gradient boosting
+lightgbm>=3.0.0     # Light gradient boosting
+
+openpyxl>=3.0.0     # Excel file support
+sqlalchemy>=1.4.0   # Database support
+
+
+# INSTALLATION INSTRUCTIONS
+# ============================================================================
+# 
+# 1. Basic installation (only core packages):
+#    pip install -r requirements.txt
+#
+# 2. With development tools:
+#    pip install -r requirements.txt black pylint pytest
+#
+# 3. With Jupyter:
+#    pip install -r requirements.txt jupyter jupyterlab ipython
+#
+# 4. Full installation (all optional packages):
+#    pip install -r requirements.txt matplotlib seaborn jupyter jupyterlab
+#
+# 5. Upgrade pip first (recommended):
+#    pip install --upgrade pip
