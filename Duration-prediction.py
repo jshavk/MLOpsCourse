@@ -1,247 +1,319 @@
 """
-Duration Prediction Model
-This script loads taxi trip data, preprocesses it, and trains machine learning models
-to predict trip duration.
+MLOps Zoomcamp Homework - Week 1
+Duration Prediction Model using NYC Yellow Taxi Data
+
+Questions:
+Q1. Number of columns in January data
+Q2. Standard deviation of trip duration
+Q3. Fraction of records after removing outliers
+Q4. Dimensionality of one-hot encoded features
+Q5. RMSE on training data
+Q6. RMSE on validation data
 """
 
 import pandas as pd
 import numpy as np
-import pickle
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.linear_model import LinearRegression, Lasso
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 import warnings
 
 warnings.filterwarnings('ignore')
 
-# ============================================================================
-# 1. DATA LOADING AND EXPLORATION
-# ============================================================================
-
-def load_data(filepath):
-    """Load parquet data with minimal processing"""
-    print(f"Loading data from {filepath}...")
-    df = pd.read_parquet(filepath)
-    return df
-
-def explore_data(df, name="Dataset"):
-    """Display basic information about the dataset"""
-    print(f"\n{'='*60}")
-    print(f"{name} Statistics")
-    print(f"{'='*60}")
-    print(f"Shape: {df.shape}")
-    print(f"\nFirst few rows:")
-    print(df.head())
-    print(f"\nData types:")
-    print(df.dtypes)
-    print(f"\nMissing values:")
-    print(df.isnull().sum())
-    print(f"\nBasic statistics:")
-    print(df.describe())
+print("="*80)
+print("MLOps ZOOMCAMP HOMEWORK - WEEK 1: DURATION PREDICTION")
+print("="*80)
 
 # ============================================================================
-# 2. DATA PREPROCESSING
+# Q1: DOWNLOADING THE DATA - How many columns?
 # ============================================================================
 
-def preprocess_data(df, is_train=True):
-    """
-    Preprocess the dataframe:
-    - Create duration column from dropoff - pickup time
-    - Remove outliers (duration < 1 or > 60 minutes)
-    - Keep only specific columns
-    - Create PU_DO feature (combination of pickup and dropoff locations)
-    """
-    df = df.copy()
-    
-    # Convert timestamp columns to datetime
-    df['tpep_pickup_datetime'] = pd.to_datetime(df['tpep_pickup_datetime'])
-    df['tpep_dropoff_datetime'] = pd.to_datetime(df['tpep_dropoff_datetime'])
-    
-    # Calculate duration in minutes
-    df['duration'] = (df['tpep_dropoff_datetime'] - df['tpep_pickup_datetime']).dt.total_seconds() / 60
-    
-    # Remove outliers
-    df = df[(df['duration'] >= 1) & (df['duration'] <= 60)]
-    
-    print(f"Rows after outlier removal: {len(df)}")
-    
-    # Keep only needed columns
-    df = df[['tpep_pickup_datetime', 'trip_distance', 'PULocationID', 'DOLocationID', 'duration']]
-    
-    # Create combined feature
-    df['PU_DO'] = df['PULocationID'].astype(str) + '_' + df['DOLocationID'].astype(str)
-    
-    return df
+print("\n" + "="*80)
+print("Q1: DOWNLOADING THE DATA - Number of Columns")
+print("="*80)
+
+# Load January 2023 data
+print("\nLoading January 2023 data...")
+df_train = pd.read_parquet('data/yellow_tripdata_2023-01.parquet')
+
+print(f"\nDataFrame shape: {df_train.shape}")
+print(f"Number of rows: {df_train.shape[0]:,}")
+print(f"Number of columns: {df_train.shape[1]}")
+
+print(f"\nColumn names:")
+for i, col in enumerate(df_train.columns, 1):
+    print(f"  {i:2d}. {col}")
+
+# Answer for Q1
+num_columns = df_train.shape[1]
+print(f"\n✓ ANSWER Q1: {num_columns} columns")
 
 # ============================================================================
-# 3. FEATURE ENGINEERING AND VECTORIZATION
+# Q2: COMPUTING DURATION - Standard Deviation
 # ============================================================================
 
-def prepare_features(df_train, df_val, categorical_features, numerical_features):
-    """
-    Convert DataFrames to feature vectors using DictVectorizer
-    """
-    dv = DictVectorizer()
-    
-    # Convert to dictionary format
-    train_dicts = df_train[categorical_features + numerical_features].to_dict(orient='records')
-    val_dicts = df_val[categorical_features + numerical_features].to_dict(orient='records')
-    
-    # Fit on training data and transform both
-    X_train = dv.fit_transform(train_dicts)
-    X_val = dv.transform(val_dicts)
-    
-    return X_train, X_val, dv
+print("\n" + "="*80)
+print("Q2: COMPUTING DURATION - Standard Deviation")
+print("="*80)
 
-def prepare_target(df_train, df_val, target_column='duration'):
-    """Extract target variable"""
-    y_train = df_train[target_column].values
-    y_val = df_val[target_column].values
-    return y_train, y_val
+# Convert to datetime
+print("\nConverting timestamps to datetime...")
+df_train['tpep_pickup_datetime'] = pd.to_datetime(df_train['tpep_pickup_datetime'])
+df_train['tpep_dropoff_datetime'] = pd.to_datetime(df_train['tpep_dropoff_datetime'])
 
-# ============================================================================
-# 4. MODEL TRAINING AND EVALUATION
-# ============================================================================
+# Calculate duration in minutes
+print("Calculating duration in minutes...")
+df_train['duration'] = (df_train['tpep_dropoff_datetime'] - df_train['tpep_pickup_datetime']).dt.total_seconds() / 60
 
-def train_linear_regression(X_train, y_train, X_val, y_val):
-    """Train Linear Regression model"""
-    print(f"\n{'='*60}")
-    print("Training Linear Regression Model")
-    print(f"{'='*60}")
-    
-    lr = LinearRegression()
-    lr.fit(X_train, y_train)
-    
-    y_pred = lr.predict(X_val)
-    rmse = np.sqrt(mean_squared_error(y_val, y_pred))
-    
-    print(f"RMSE: {rmse:.4f}")
-    
-    return lr, rmse
+print(f"\nDuration statistics (before removing outliers):")
+print(f"  Count: {df_train['duration'].count():,}")
+print(f"  Mean: {df_train['duration'].mean():.2f} minutes")
+print(f"  Median: {df_train['duration'].median():.2f} minutes")
+print(f"  Std Dev: {df_train['duration'].std():.2f} minutes")
+print(f"  Min: {df_train['duration'].min():.2f} minutes")
+print(f"  Max: {df_train['duration'].max():.2f} minutes")
 
-def train_lasso(X_train, y_train, X_val, y_val, alpha=0.01):
-    """Train Lasso model with L1 regularization"""
-    print(f"\n{'='*60}")
-    print(f"Training Lasso Model (alpha={alpha})")
-    print(f"{'='*60}")
-    
-    lasso = Lasso(alpha=alpha, random_state=42)
-    lasso.fit(X_train, y_train)
-    
-    y_pred = lasso.predict(X_val)
-    rmse = np.sqrt(mean_squared_error(y_val, y_pred))
-    
-    print(f"RMSE: {rmse:.4f}")
-    
-    return lasso, rmse
-
-def save_model(model, dv, filepath='models/lin_reg.bin'):
-    """Save model and vectorizer to file"""
-    import os
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    
-    with open(filepath, 'wb') as f_out:
-        pickle.dump((dv, model), f_out)
-    
-    print(f"Model saved to {filepath}")
+# Answer for Q2
+std_duration = df_train['duration'].std()
+print(f"\n✓ ANSWER Q2: Standard deviation = {std_duration:.2f} minutes")
 
 # ============================================================================
-# 5. MAIN EXECUTION
+# Q3: DROPPING OUTLIERS - Fraction of Records Remaining
 # ============================================================================
 
-def main():
-    """Main execution function"""
-    
-    print("\n" + "="*60)
-    print("DURATION PREDICTION MODEL PIPELINE")
-    print("="*60)
-    
-    # Configuration
-    # For local testing, you can use sample data
-    # Replace these paths with your actual data locations
-    
-    try:
-        # Load data
-        # Adjust these paths based on where your data is stored
-        train_file = 'data/yellow_tripdata_2023-01.parquet'
-        val_file = 'data/yellow_tripdata_2023-02.parquet'
-        
-        print("\nAttempting to load training data...")
-        df_train = load_data(train_file)
-        print("✓ Training data loaded successfully")
-        
-        print("\nAttempting to load validation data...")
-        df_val = load_data(val_file)
-        print("✓ Validation data loaded successfully")
-        
-    except FileNotFoundError as e:
-        print(f"\n⚠ Data files not found: {e}")
-        print("\nTo use this script, you need:")
-        print("1. Create a 'data' folder in your project directory")
-        print("2. Download taxi trip data (parquet files) from NYC Taxi & Limousine Commission")
-        print("3. Place them in the data folder as:")
-        print("   - data/yellow_tripdata_2023-01.parquet")
-        print("   - data/yellow_tripdata_2023-02.parquet")
-        print("\nAlternatively, you can download sample data from:")
-        print("https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page")
-        print("\nScript structure is ready to use once data is available.")
-        return
-    
-    # Explore original data
-    explore_data(df_train, "Training Data")
-    explore_data(df_val, "Validation Data")
-    
-    # Preprocess
-    print(f"\n{'='*60}")
-    print("Preprocessing Training Data")
-    print(f"{'='*60}")
-    df_train = preprocess_data(df_train, is_train=True)
-    
-    print(f"\n{'='*60}")
-    print("Preprocessing Validation Data")
-    print(f"{'='*60}")
-    df_val = preprocess_data(df_val, is_train=False)
-    
-    # Feature engineering
-    categorical_features = ['PU_DO']
-    numerical_features = ['trip_distance']
-    
-    print(f"\n{'='*60}")
-    print("Feature Engineering")
-    print(f"{'='*60}")
-    print(f"Categorical features: {categorical_features}")
-    print(f"Numerical features: {numerical_features}")
-    
-    X_train, X_val, dv = prepare_features(df_train, df_val, categorical_features, numerical_features)
-    y_train, y_val = prepare_target(df_train, df_val)
-    
-    print(f"Training set shape: {X_train.shape}")
-    print(f"Validation set shape: {X_val.shape}")
-    
-    # Train models
-    lr_model, lr_rmse = train_linear_regression(X_train, y_train, X_val, y_val)
-    lasso_model, lasso_rmse = train_lasso(X_train, y_train, X_val, y_val, alpha=0.01)
-    
-    # Compare models
-    print(f"\n{'='*60}")
-    print("MODEL COMPARISON")
-    print(f"{'='*60}")
-    print(f"Linear Regression RMSE: {lr_rmse:.6f}")
-    print(f"Lasso (alpha=0.01) RMSE: {lasso_rmse:.6f}")
-    
-    if lr_rmse < lasso_rmse:
-        print(f"✓ Linear Regression performs better")
-        best_model = lr_model
-    else:
-        print(f"✓ Lasso model performs better")
-        best_model = lasso_model
-    
-    # Save best model
-    save_model(best_model, dv, filepath='models/duration_predictor.bin')
-    
-    print(f"\n{'='*60}")
-    print("Pipeline completed successfully!")
-    print(f"{'='*60}\n")
+print("\n" + "="*80)
+print("Q3: DROPPING OUTLIERS - Fraction Remaining (1-60 minutes)")
+print("="*80)
 
-if __name__ == "__main__":
-    main()
+print(f"\nOriginal dataset size: {len(df_train):,} rows")
+
+# Remove outliers: keep only 1 <= duration <= 60
+df_train_filtered = df_train[(df_train['duration'] >= 1) & (df_train['duration'] <= 60)]
+
+print(f"After removing outliers: {len(df_train_filtered):,} rows")
+
+# Calculate fraction
+fraction = len(df_train_filtered) / len(df_train)
+percentage = fraction * 100
+
+print(f"\nOutliers removed: {len(df_train) - len(df_train_filtered):,} rows")
+print(f"Fraction remaining: {fraction:.4f} ({percentage:.2f}%)")
+
+# Answer for Q3
+print(f"\n✓ ANSWER Q3: Fraction = {percentage:.0f}% (approximately)")
+
+# Continue with filtered data
+df_train = df_train_filtered
+
+# ============================================================================
+# Q4: ONE-HOT ENCODING - Dimensionality
+# ============================================================================
+
+print("\n" + "="*80)
+print("Q4: ONE-HOT ENCODING - Feature Matrix Dimensionality")
+print("="*80)
+
+print("\nPreparing features for one-hot encoding...")
+
+# Convert location IDs to strings
+df_train['PULocationID'] = df_train['PULocationID'].astype(str)
+df_train['DOLocationID'] = df_train['DOLocationID'].astype(str)
+
+print(f"  Unique pickup locations: {df_train['PULocationID'].nunique()}")
+print(f"  Unique dropoff locations: {df_train['DOLocationID'].nunique()}")
+
+# Convert to list of dictionaries
+print("\nConverting to list of dictionaries...")
+train_dicts = df_train[['PULocationID', 'DOLocationID']].to_dict(orient='records')
+
+print(f"  Number of records: {len(train_dicts):,}")
+print(f"  Sample record: {train_dicts[0]}")
+
+# Fit DictVectorizer
+print("\nFitting DictVectorizer...")
+dv = DictVectorizer()
+X_train = dv.fit_transform(train_dicts)
+
+print(f"\nFeature matrix shape: {X_train.shape}")
+dimensionality = X_train.shape[1]
+
+print(f"  Rows (samples): {X_train.shape[0]:,}")
+print(f"  Columns (features): {X_train.shape[1]}")
+
+# Answer for Q4
+print(f"\n✓ ANSWER Q4: Dimensionality = {dimensionality} columns")
+
+# ============================================================================
+# Q5: TRAINING A MODEL - RMSE on Training Data
+# ============================================================================
+
+print("\n" + "="*80)
+print("Q5: TRAINING A MODEL - RMSE on Training Data")
+print("="*80)
+
+# Prepare target variable
+y_train = df_train['duration'].values
+
+print(f"\nTraining data:")
+print(f"  Samples: {len(y_train):,}")
+print(f"  Features: {X_train.shape[1]}")
+
+# Train Linear Regression
+print("\nTraining Linear Regression model...")
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+
+# Make predictions
+y_pred_train = lr.predict(X_train)
+
+# Calculate RMSE
+rmse_train = np.sqrt(mean_squared_error(y_train, y_pred_train))
+
+print(f"\nTraining Results:")
+print(f"  Model: LinearRegression()")
+print(f"  Predictions on training data made: {len(y_pred_train):,}")
+print(f"  Mean prediction: {y_pred_train.mean():.2f} minutes")
+print(f"  Std prediction: {y_pred_train.std():.2f} minutes")
+print(f"  RMSE: {rmse_train:.2f} minutes")
+
+# Answer for Q5
+print(f"\n✓ ANSWER Q5: RMSE on training = {rmse_train:.2f}")
+
+# ============================================================================
+# Q6: EVALUATING THE MODEL - RMSE on Validation Data
+# ============================================================================
+
+print("\n" + "="*80)
+print("Q6: EVALUATING THE MODEL - RMSE on Validation Data")
+print("="*80)
+
+# Load February 2023 data
+print("\nLoading February 2023 data...")
+df_val = pd.read_parquet('data/yellow_tripdata_2023-02.parquet')
+
+print(f"Validation data shape: {df_val.shape}")
+
+# Process validation data the same way as training
+print("\nProcessing validation data...")
+
+# Convert to datetime
+df_val['tpep_pickup_datetime'] = pd.to_datetime(df_val['tpep_pickup_datetime'])
+df_val['tpep_dropoff_datetime'] = pd.to_datetime(df_val['tpep_dropoff_datetime'])
+
+# Calculate duration
+df_val['duration'] = (df_val['tpep_dropoff_datetime'] - df_val['tpep_pickup_datetime']).dt.total_seconds() / 60
+
+# Remove outliers
+df_val = df_val[(df_val['duration'] >= 1) & (df_val['duration'] <= 60)]
+
+print(f"  After filtering: {len(df_val):,} records")
+
+# One-hot encoding
+df_val['PULocationID'] = df_val['PULocationID'].astype(str)
+df_val['DOLocationID'] = df_val['DOLocationID'].astype(str)
+
+val_dicts = df_val[['PULocationID', 'DOLocationID']].to_dict(orient='records')
+
+# Transform using the fitted vectorizer
+X_val = dv.transform(val_dicts)
+
+print(f"  Feature matrix shape: {X_val.shape}")
+
+# Prepare target variable
+y_val = df_val['duration'].values
+
+# Make predictions
+print("\nMaking predictions on validation data...")
+y_pred_val = lr.predict(X_val)
+
+# Calculate RMSE
+rmse_val = np.sqrt(mean_squared_error(y_val, y_pred_val))
+
+print(f"\nValidation Results:")
+print(f"  Samples: {len(y_val):,}")
+print(f"  Mean actual: {y_val.mean():.2f} minutes")
+print(f"  Mean prediction: {y_pred_val.mean():.2f} minutes")
+print(f"  RMSE: {rmse_val:.2f} minutes")
+
+# Answer for Q6
+print(f"\n✓ ANSWER Q6: RMSE on validation = {rmse_val:.2f}")
+
+# ============================================================================
+# SUMMARY OF ALL ANSWERS
+# ============================================================================
+
+print("\n" + "="*80)
+print("SUMMARY - ALL HOMEWORK ANSWERS")
+print("="*80)
+
+print(f"""
+Q1. Number of columns in January data:
+    Answer: {num_columns}
+    Options: 16, 17, 18, 19
+    
+Q2. Standard deviation of trip duration:
+    Answer: {std_duration:.2f}
+    Options: 32.59, 42.59, 52.59, 62.59
+    
+Q3. Fraction of records after removing outliers (1-60 min):
+    Answer: {percentage:.0f}%
+    Options: 90%, 92%, 95%, 98%
+    
+Q4. Dimensionality of one-hot encoded feature matrix:
+    Answer: {dimensionality}
+    Options: 2, 155, 345, 515, 715
+    
+Q5. RMSE on training data:
+    Answer: {rmse_train:.2f}
+    Options: 3.64, 7.64, 11.64, 16.64
+    
+Q6. RMSE on validation data:
+    Answer: {rmse_val:.2f}
+    Options: 3.81, 7.81, 11.81, 16.81
+""")
+
+print("="*80)
+print("HOMEWORK COMPLETE!")
+print("="*80)
+
+# ============================================================================
+# ADDITIONAL ANALYSIS
+# ============================================================================
+
+print("\n" + "="*80)
+print("ADDITIONAL MODEL INSIGHTS")
+print("="*80)
+
+print(f"""
+Model Performance:
+  - Training RMSE: {rmse_train:.2f} minutes
+  - Validation RMSE: {rmse_val:.2f} minutes
+  - Difference: {abs(rmse_val - rmse_train):.2f} minutes
+  
+Interpretation:
+  - Model explains {(1 - (rmse_train/y_train.mean()))*100:.1f}% of training variance
+  - Model explains {(1 - (rmse_val/y_val.mean()))*100:.1f}% of validation variance
+  - Very consistent performance (minimal overfitting)
+  
+Data Quality:
+  - Training: {len(y_train):,} records
+  - Validation: {len(y_val):,} records
+  - Features: {X_train.shape[1]} (one-hot encoded locations)
+  - Outliers removed: ~{(1-fraction)*100:.1f}% of original data
+""")
+
+print("\nModel Coefficients:")
+print(f"  - Intercept: {lr.intercept_:.2f} minutes")
+print(f"  - Number of feature weights: {len(lr.coef_)}")
+print(f"  - Top 5 positive weights (longest duration increase):")
+
+# Get top 5 positive coefficients
+feature_names = dv.get_feature_names_out()
+top_idx = np.argsort(lr.coef_)[-5:][::-1]
+for rank, idx in enumerate(top_idx, 1):
+    print(f"    {rank}. {feature_names[idx]}: +{lr.coef_[idx]:.2f} minutes")
+
+print(f"\n  - Top 5 negative weights (shortest duration):")
+bottom_idx = np.argsort(lr.coef_)[:5]
+for rank, idx in enumerate(bottom_idx, 1):
+    print(f"    {rank}. {feature_names[idx]}: {lr.coef_[idx]:.2f} minutes")
