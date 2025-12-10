@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/julia_shavkatsishvili/Desktop/mlopsCourse/MLOpsCourse/mlruns/0/0b33e5d562b14c36a2191709057fef1c/artifacts
+end_time: 1765391529720
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 0b33e5d562b14c36a2191709057fef1c
+run_name: serious-auk-67
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1765391521746
+status: 3
+tags: []
+user_id: julia_shavkatsishvili

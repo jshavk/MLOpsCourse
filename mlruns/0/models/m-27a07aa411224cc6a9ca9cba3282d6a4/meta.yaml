@@ -1,0 +1,10 @@
+artifact_location: file:///Users/julia_shavkatsishvili/Desktop/mlopsCourse/MLOpsCourse/mlruns/0/models/m-27a07aa411224cc6a9ca9cba3282d6a4/artifacts
+creation_timestamp: 1765391526719
+experiment_id: '0'
+last_updated_timestamp: 1765391528283
+model_id: m-27a07aa411224cc6a9ca9cba3282d6a4
+model_type: null
+name: model
+source_run_id: 0b33e5d562b14c36a2191709057fef1c
+status: 2
+status_message: null
