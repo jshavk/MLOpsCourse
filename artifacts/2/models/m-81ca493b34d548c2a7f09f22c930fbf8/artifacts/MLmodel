@@ -1,0 +1,14 @@
+artifact_path: /Users/julia_shavkatsishvili/Desktop/mlopsCourse/MLOpsCourse/artifacts/2/models/m-81ca493b34d548c2a7f09f22c930fbf8/artifacts
+flavors:
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.6.1
+mlflow_version: 3.1.4
+model_id: m-81ca493b34d548c2a7f09f22c930fbf8
+model_size_bytes: 13031
+model_uuid: m-81ca493b34d548c2a7f09f22c930fbf8
+prompts: null
+run_id: 3e8f362ae3af4504a16f07ff5a831798
+utc_time_created: '2025-12-10 19:05:46.557463'

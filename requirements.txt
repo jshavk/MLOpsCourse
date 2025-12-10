@@ -46,20 +46,3 @@ openpyxl>=3.0.0     # Excel file support
 sqlalchemy>=1.4.0   # Database support
 
 
-# INSTALLATION INSTRUCTIONS
-# ============================================================================
-# 
-# 1. Basic installation (only core packages):
-#    pip install -r requirements.txt
-#
-# 2. With development tools:
-#    pip install -r requirements.txt black pylint pytest
-#
-# 3. With Jupyter:
-#    pip install -r requirements.txt jupyter jupyterlab ipython
-#
-# 4. Full installation (all optional packages):
-#    pip install -r requirements.txt matplotlib seaborn jupyter jupyterlab
-#
-# 5. Upgrade pip first (recommended):
-#    pip install --upgrade pip
