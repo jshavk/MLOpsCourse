@@ -1,0 +1,45 @@
+# Docker Compose file for Localstack S3
+# Week 6 Q4 - Mocking S3 with Localstack
+
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack
+    container_name: localstack_main
+    ports:
+      # LocalStack Gateway
+      - "4566:4566"
+      # External service port
+      - "4571:4571"
+    environment:
+      # Activate S3 service
+      - SERVICES=s3
+      # Debug mode
+      - DEBUG=1
+      # LocalStack data directory
+      - DATA_DIR=/tmp/localstack/data
+      # Lambda executor
+      - LAMBDA_EXECUTOR=docker
+      # Default AWS region
+      - AWS_DEFAULT_REGION=us-east-1
+      # Enable S3 for cross region access
+      - S3_IGNORE_SUBDOMAIN_BUCKETNAME=1
+    volumes:
+      # Mount /tmp folder in container for data persistence
+      - "${TMPDIR}:/tmp/localstack"
+      # Mount Docker socket for Lambda execution
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - localstack_network
+
+networks:
+  localstack_network:
+    driver: bridge
+
+# Usage:
+# 1. Start Localstack: docker-compose up
+# 2. Create bucket: aws s3 mb s3://nyc-duration --endpoint-url=http://localhost:4566
+# 3. List buckets: aws s3 ls --endpoint-url=http://localhost:4566
+# 4. Upload file: aws s3 cp file.parquet s3://nyc-duration/ --endpoint-url=http://localhost:4566
+# 5. Stop: docker-compose down
